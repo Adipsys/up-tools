@@ -9,4 +9,5 @@ services:
          - ZBX_SERVER_HOST=${ZBX_SERVER_HOST}
          - ZBX_PASSIVESERVERS=${ZBX_PASSIVESERVERS}
          - ZBX_ACTIVESERVERS=${ZBX_ACTIVESERVERS}
-      
+      ports:
+         - 10050:10050
