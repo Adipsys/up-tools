@@ -1,11 +1,14 @@
 #!/bin/bash
 
-USAGE="Usage: -d DAYSTOPURGE -v VOLUMENAME -t TARGETDIR"
+USAGE="Usage: -d DAYSTOPURGE -c CONTAINERNAME -p PASSWORD -t TARGETDIR"
 
-while getopts "d:v:t:" option; do
+while getopts "c:p:t:d:" option; do
     case "${option}" in
-	v)
-	    VOLUMENAME=${OPTARG}
+	c)
+	    CONTAINERNAME=${OPTARG}
+	    ;;
+	p)
+	    PASSWORD=${OPTARG}
 	    ;;
         t)
             TARGETDIR=${OPTARG}
@@ -22,11 +25,20 @@ done
 #shift $((OPTIND-1))
 
 DATE=`date +%Y-%m-%d-%H-%M-%S`
-TARGETFILE="docker_volume_$VOLUMENAME_$DATE.tar.gz"
+TARGETFILE="docker_database_$CONTAINERNAME_$DATE.tar.gz"
 LOG="/var/log/docker_backup.log"
 
-if [ -z $VOLUMENAME ] ; then
-        echo "Missing mandatory VOLUMENAME parameter !"
+if [ -z $CONTAINERNAME ] ; then
+        echo "Missing mandatory CONTAINERNAME parameter !"
+        echo $USAGE
+	exit 1
+else 
+	CONTAINERFULLNAME=$(docker ps --format "{{.Names}}" | grep "$CONTAINERNAME")
+	echo "Cantainer full name is $CONTAINERFULLNAME"
+fi
+
+if [ -z $PASSWORD ] ; then
+        echo "Missing mandatory PASSWORD parameter !"
         echo $USAGE
 	exit 1
 fi
@@ -46,21 +58,21 @@ backup_purge()
 {
 	if [[ $DAYSTOPURGE -gt 0 ]]; then
 		echo "Purge files older than $DAYSTOPURGE days" >> $LOG
-		find $TARGETDIR -name "docker_volume_$VOLUMENAME_*.tar.gz" -mtime +$DAYSTOPURGE -exec rm {} \; >> $LOG
+		find $TARGETDIR -name "docker_database_$CONTAINERNAME_*.tar.gz" -mtime +$DAYSTOPURGE -exec rm {} \; >> $LOG
 	fi
 }
 
-backup_volume()
+backup_database()
 {
-	docker run --rm -v $VOLUMENAME:/var/www -v $TARGETDIR:/backups/ debian:jessie-slim bash -c "cd /var/www && tar cvzf /backups/docker_volume_$VOLUMENAME-$DATE.tar.gz ." >> $LOG
+	docker exec $CONTAINERFULLNAME /usr/bin/mysqldump -u root --password=$PASSWORD --all-databases | gzip -9 > $TARGETDIR/docker_database_$CONTAINERNAME-$DATE.sql.gz
 }
 
 if [ -n "$DAYSTOPURGE" ]; then
-	echo "Cleaning Volume Backupe on $DATE" >> $LOG
-	echo "Cleaning Volume Backupe on $DATE"
+	echo "Cleaning Database Backup on $DATE" >> $LOG
+	echo "Cleaning Database Backup on $DATE"
 	backup_purge
 else
-	echo "Running Volume Backup on $DATE" >> $LOG
-	echo "Running Volume Backup on $DATE"
-	backup_volume
+	echo "Running Database Backup on $DATE" >> $LOG
+	echo "Running Database Backup on $DATE"
+	backup_database
 fi

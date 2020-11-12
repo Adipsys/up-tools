@@ -2,7 +2,7 @@
 
 USAGE="Usage: -d DAYSTOPURGE -v VOLUMENAME -t TARGETDIR"
 
-while getopts "d:v:t:" option; do
+while getopts "v:t:d:" option; do
     case "${option}" in
 	v)
 	    VOLUMENAME=${OPTARG}
@@ -56,8 +56,8 @@ backup_volume()
 }
 
 if [ -n "$DAYSTOPURGE" ]; then
-	echo "Cleaning Volume Backupe on $DATE" >> $LOG
-	echo "Cleaning Volume Backupe on $DATE"
+	echo "Cleaning Volume Backup on $DATE" >> $LOG
+	echo "Cleaning Volume Backup on $DATE"
 	backup_purge
 else
 	echo "Running Volume Backup on $DATE" >> $LOG
