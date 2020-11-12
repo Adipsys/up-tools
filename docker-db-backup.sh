@@ -58,7 +58,7 @@ backup_purge()
 {
 	if [[ $DAYSTOPURGE -gt 0 ]]; then
 		echo "Purge files older than $DAYSTOPURGE days" >> $LOG
-		find $TARGETDIR -name "docker_database_$CONTAINERNAME_*.tar.gz" -mtime +$DAYSTOPURGE -exec rm {} \; >> $LOG
+		find $TARGETDIR -name "docker_database_$CONTAINERNAME-*.tar.gz" -mtime +$DAYSTOPURGE -exec rm {} \; >> $LOG
 	fi
 }
 
