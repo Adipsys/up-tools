@@ -49,6 +49,7 @@ services:
         - "traefik.http.routers.traefik.entrypoints=web"
         - "traefik.http.routers.traefik.service=api@internal"
         - "traefik.http.routers.traefik.middlewares=traefik-auth"
+        # Password hash will be generated with: htpasswd -nBC 10 <username>
         - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:change_me_to_htpasswd"
         - "traefik.http.services.dummy-svc.loadbalancer.server.port=9999"
         - "traefik.docker.network=traefik"
