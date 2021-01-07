@@ -19,6 +19,11 @@ services:
       - "--providers.docker.network=traefik"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
+      # ...
+      - "--certificatesResolvers.letsEncrypt.acme.email=support@adipsys.com"
+      - "--certificatesResolvers.letsEncrypt.acme.storage=acme.json"
+      # used during the challenge
+      - "--certificatesResolvers.letsEncrypt.acme.httpChallenge.entryPoint=web"
       #- "--log.level=debug"
       - "--serverstransport.insecureskipverify=true"
     ports:
