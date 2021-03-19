@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USAGE="Usage: -d DAYSTOPURGE -v VOLUMENAME -t TARGETDIR"
+USAGE="Usage: -v VOLUMENAME|all -t TARGETDIR -d DAYSTOPURGE"
 
 while getopts "v:t:d:" option; do
     case "${option}" in
