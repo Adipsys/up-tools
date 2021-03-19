@@ -50,20 +50,54 @@ backup_purge()
 	fi
 }
 
+backup_purge_all()
+{
+for VOLUME in $(docker volume ls |grep local|tr -s " "|cut -d " " -f 2); do
+    echo "Proceeding with cleaning $VOLUME..."
+    if [[ $DAYSTOPURGE -gt 0 ]]; then
+        echo "Purge files older than $DAYSTOPURGE days" >> $LOG
+        find $TARGETDIR -name "docker_volume_$VOLUME-*.tar.gz" -mtime +$DAYSTOPURGE -exec rm {} \; >> $LOG
+    fi
+done
+}
+
 backup_volume()
 {
 	docker run --rm -v $VOLUMENAME:/var/www -v $TARGETDIR:/backups/ debian:jessie-slim bash -c "cd /var/www && tar cvzf /backups/docker_volume_$VOLUMENAME-$DATE.tar.gz ." >> $LOG
 }
 
+backup_all_volumes()
+{
+for VOLUME in $(docker volume ls |grep local|tr -s " "|cut -d " " -f 2); do
+    echo "Proceeding with $VOLUME..."
+    docker run --rm -v $VOLUME:/var/www -v $TARGETDIR:/backups/ debian:jessie-slim bash -c "cd /var/www && tar cvzf /backups/docker_volume_$VOLUME-$DATE.tar.gz ." >> $LOG
+done
+}
+
 if [ -n "$DAYSTOPURGE" ]; then
-    echo "Running Volume Backup on $DATE" >> $LOG
-    echo "Running Volume Backup on $DATE"
-    backup_volume
-	echo "Cleaning Volume Backup on $DATE" >> $LOG
-	echo "Cleaning Volume Backup on $DATE"
-	backup_purge
+    if [ "$VOLUMENAME" == "all" ]; then
+        echo "Running Volume Backup on $DATE" >> $LOG
+        echo "Running Volume Backup on $DATE"
+        backup_all_volumes
+        echo "Cleaning Volume Backup on $DATE" >> $LOG
+        echo "Cleaning Volume Backup on $DATE"
+        backup_purge_all
+    else
+        echo "Running Volume Backup on $DATE" >> $LOG
+        echo "Running Volume Backup on $DATE"
+        backup_volume
+        echo "Cleaning Volume Backup on $DATE" >> $LOG
+        echo "Cleaning Volume Backup on $DATE"
+        backup_purge
+    fi
 else
-	echo "Running Volume Backup on $DATE" >> $LOG
-	echo "Running Volume Backup on $DATE"
-	backup_volume
+    if [ "$VOLUMENAME" == "all" ]; then
+        echo "Running Volume Backup on $DATE" >> $LOG
+        echo "Running Volume Backup on $DATE"
+        backup_all_volumes
+    else
+        echo "Running Volume Backup on $DATE" >> $LOG
+        echo "Running Volume Backup on $DATE"
+        backup_volume
+    fi
 fi
