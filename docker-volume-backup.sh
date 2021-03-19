@@ -56,6 +56,9 @@ backup_volume()
 }
 
 if [ -n "$DAYSTOPURGE" ]; then
+    echo "Running Volume Backup on $DATE" >> $LOG
+    echo "Running Volume Backup on $DATE"
+    backup_volume
 	echo "Cleaning Volume Backup on $DATE" >> $LOG
 	echo "Cleaning Volume Backup on $DATE"
 	backup_purge
