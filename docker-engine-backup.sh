@@ -61,6 +61,9 @@ else
 }
 
 if [ -n "$DAYSTOPURGE" ]; then
+    echo "Running Engine Backup on $DATE" >> $LOG
+    echo "Running Engine Backup on $DATE"
+    backup_engine
 	echo "Cleaning Engine Backup on $DATE" >> $LOG
 	echo "Cleaning Engine Backup on $DATE"
 	backup_purge

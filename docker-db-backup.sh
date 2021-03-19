@@ -68,6 +68,9 @@ backup_database()
 }
 
 if [ -n "$DAYSTOPURGE" ]; then
+    echo "Running Database Backup on $DATE" >> $LOG
+    echo "Running Database Backup on $DATE"
+    backup_database
 	echo "Cleaning Database Backup on $DATE" >> $LOG
 	echo "Cleaning Database Backup on $DATE"
 	backup_purge
