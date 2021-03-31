@@ -1,6 +1,4 @@
 version: '3.8'
-volumes:
- filebrowser_vol01:
  
 services:
     filebrowser:
