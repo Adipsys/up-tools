@@ -1,14 +1,17 @@
 #!/bin/bash
 
-USAGE="Usage: -db DATABASEFILE -vol VOLUMEFILE -c CONTAINERNAME -p PASSWORD"
+USAGE="Usage: -d DATABASEFILE -v VOLUMEFILE -t TARGETVOL -c CONTAINERNAME -p PASSWORD"
 
-while getopts "db:vol:c:p:" option; do
+while getopts "d:v:t:c:p:" option; do
     case "${option}" in
-	db)
+	d)
 	    DATABASEFILE=${OPTARG}
 	    ;;
-	vol)
+	v)
 	    VOLUMEFILE=${OPTARG}
+	    ;;
+	t)
+	    TARGETVOL=${OPTARG}
 	    ;;
         c)
             CONTAINERNAME=${OPTARG}
@@ -26,17 +29,21 @@ done
 
 DATE=`date +%Y-%m-%d-%H-%M-%S`
 
-CONTAINERFULLNAME=$(docker ps --format "{{.Names}}" | grep "$CONTAINERNAME")
-echo "Cantainer full name is $CONTAINERFULLNAME"
 
-if [ -f $DATABASEFILE ] ; then
-        echo "Missing mandatory DATABASEFILE !"
+if [ ! -f $DATABASEFILE ] ; then
+        echo "Missing mandatory $DATABASEFILE !"
         echo $USAGE
 	exit 1
 fi
 
-if [ -f $VOLUMEFILE ] ; then
+if [ ! -f $VOLUMEFILE ] ; then
         echo "Missing mandatory VOLUMEFILE !"
+        echo $USAGE
+	exit 1
+fi
+
+if [ -z $TARGETVOL ] ; then
+        echo "Missing mandatory $TARGETVOL parameter !"
         echo $USAGE
 	exit 1
 fi
@@ -54,10 +61,17 @@ fi
 
 restore_database()
 {
-	docker exec $CONTAINERFULLNAME gunzip $DATABASEFILE | /usr/bin/mysql -u root -p$PASSWORD
+	CONTAINERFULLNAME=$(docker ps --format "{{.Names}}" | grep "$CONTAINERNAME")
+	echo "Restoring database to $CONTAINERFULLNAME"
+	gunzip < $DATABASEFILE | docker exec -i $CONTAINERFULLNAME mysql -h hm-db -u root -p$PASSWORD
 }
 
 restore_volume()
 {
-	docker run --rm -v $VOLUMENAME:/var/www -v $VOLUMEFILE:/backups/volume.tar.gz debian:jessie-slim bash -c "cd /var/www && tar xvzf /backups/$VOLUMEFILE ."
+	echo "Restoring $VOLUMEFILE to $TARGETVOL"
+	docker run --rm -v $TARGETVOL:/var/www -v $VOLUMEFILE:/backups/volume.tar.gz debian:jessie-slim bash -c "cd /var/www && tar xzf /backups/volume.tar.gz ."
+	echo -e "\n Please restart the main container"
 }
+
+restore_database
+restore_volume
