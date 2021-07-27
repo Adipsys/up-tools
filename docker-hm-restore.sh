@@ -62,7 +62,7 @@ fi
 restore_database()
 {
 	CONTAINERFULLNAME=$(docker ps --format "{{.Names}}" | grep "$MAINCONTAINER")
-	echo -e "- Restoring database to $CONTAINERFULLNAME\n"
+	echo -e "- Restoring $DATABASEFILE to $CONTAINERFULLNAME\n"
 	gunzip < $DATABASEFILE | docker exec -i $CONTAINERFULLNAME mysql -h hm-db -u root -p$DBPASSWORD
 }
 
