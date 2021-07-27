@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USAGE="Usage: -d DATABASEFILE -v VOLUMEFILE -t TARGETVOL -c CONTAINERNAME -p PASSWORD"
+USAGE="Usage: -d DATABASEFILE -v VOLUMEDATAFILE -t TARGETVOL -c MAINCONTAINER -p DBPASSWORD"
 
 while getopts "d:v:t:c:p:" option; do
     case "${option}" in
@@ -8,16 +8,16 @@ while getopts "d:v:t:c:p:" option; do
 	    DATABASEFILE=${OPTARG}
 	    ;;
 	v)
-	    VOLUMEFILE=${OPTARG}
+	    VOLUMEDATAFILE=${OPTARG}
 	    ;;
 	t)
 	    TARGETVOL=${OPTARG}
 	    ;;
         c)
-            CONTAINERNAME=${OPTARG}
+            MAINCONTAINER=${OPTARG}
             ;;
         p)
-            PASSWORD=${OPTARG}
+            DBPASSWORD=${OPTARG}
             ;;
         *)
             echo "Invalid parameter used !"
@@ -36,8 +36,8 @@ if [ ! -f $DATABASEFILE ] ; then
 	exit 1
 fi
 
-if [ ! -f $VOLUMEFILE ] ; then
-        echo "Missing mandatory VOLUMEFILE !"
+if [ ! -f $VOLUMEDATAFILE ] ; then
+        echo "Missing mandatory VOLUMEDATAFILE !"
         echo $USAGE
 	exit 1
 fi
@@ -48,30 +48,33 @@ if [ -z $TARGETVOL ] ; then
 	exit 1
 fi
 
-if [ -z $CONTAINERNAME ] ; then
-        echo "Missing mandatory CONTAINERNAME parameter !"
+if [ -z $MAINCONTAINER ] ; then
+        echo "Missing mandatory MAINCONTAINER parameter !"
         echo $USAGE
 	exit 1
 fi
 
-if [ -z $PASSWORD ]; then
-        echo "Missing mandatory PASSWORD parameter !"
+if [ -z $DBPASSWORD ]; then
+        echo "Missing mandatory DBPASSWORD parameter !"
         exit 1
 fi
 
 restore_database()
 {
-	CONTAINERFULLNAME=$(docker ps --format "{{.Names}}" | grep "$CONTAINERNAME")
-	echo "Restoring database to $CONTAINERFULLNAME"
-	gunzip < $DATABASEFILE | docker exec -i $CONTAINERFULLNAME mysql -h hm-db -u root -p$PASSWORD
+	CONTAINERFULLNAME=$(docker ps --format "{{.Names}}" | grep "$MAINCONTAINER")
+	echo -e "- Restoring database to $CONTAINERFULLNAME\n"
+	gunzip < $DATABASEFILE | docker exec -i $CONTAINERFULLNAME mysql -h hm-db -u root -p$DBPASSWORD
 }
 
 restore_volume()
 {
-	echo "Restoring $VOLUMEFILE to $TARGETVOL"
-	docker run --rm -v $TARGETVOL:/var/www -v $VOLUMEFILE:/backups/volume.tar.gz debian:jessie-slim bash -c "cd /var/www && tar xzf /backups/volume.tar.gz ."
+	echo "- Restoring $VOLUMEDATAFILE to $TARGETVOL"
+	docker run --rm -v $TARGETVOL:/var/www -v $VOLUMEDATAFILE:/backups/volume.tar.gz debian:jessie-slim bash -c "cd /var/www && tar xzf /backups/volume.tar.gz ."
 	echo -e "\n Please restart the main container"
 }
+
+echo "WARNING : TARGET DATABASE on $MAINCONTAINER and VOLUME $TARGETVOL WILL BE OVERWRITTEN !!!!! (CTRL+C TO CANCEL)"
+read
 
 restore_database
 restore_volume
