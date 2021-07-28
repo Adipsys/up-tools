@@ -64,7 +64,8 @@ backup_purge()
 
 backup_database()
 {
-	docker exec $CONTAINERFULLNAME /usr/bin/mysqldump -u root --password=$PASSWORD --all-databases --add-drop-database | gzip -9 > $TARGETDIR/docker_database_$CONTAINERNAME-$DATE.sql.gz
+	#docker exec $CONTAINERFULLNAME /usr/bin/mysqldump -u root --password=$PASSWORD --all-databases --add-drop-database | gzip -9 > $TARGETDIR/docker_database_$CONTAINERNAME-$DATE.sql.gz
+    docker exec $CONTAINERFULLNAME /usr/bin/mysqldump -u root --password=$PASSWORD --all-databases | gzip -9 > $TARGETDIR/docker_database_$CONTAINERNAME-$DATE.sql.gz
 }
 
 if [ -n "$DAYSTOPURGE" ]; then

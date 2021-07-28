@@ -66,18 +66,24 @@ restore_volume()
 	echo -e "\n Please restart the main container"
 }
 
-    if [ -n "$DATABASEFILE" ] || [ -n "$VOLUMEDATAFILE" ] ; then
-                if [ -f "$DATABASEFILE" ]; then
-                restore_database
-                else
-                    echo "$DATABASEFILE not found !"
-                fi
-                
+    if [ -z "$VOLUMEDATAFILE" ] && [ -z "$DATABASEFILE" ]; then
+            echo -e "No DATABASEFILE or VOLUMEDATAFILE\n$USAGE"
+            exit 1
+    fi
+
+    if [ -n "$VOLUMEDATAFILE" ]; then
                 if [ -f "$VOLUMEDATAFILE" ]; then
                 restore_volume
                 else
-                    echo "$VOLUMEDATAFILE not found !"
+                    echo "File $VOLUMEDATAFILE not found"
                 fi
-    else
-        echo -e "No DATABASEFILE or VOLUMEDATAFILE\n$USAGE"
     fi
+
+    if [ -n "$DATABASEFILE" ]; then
+                if [ -f "$DATABASEFILE" ]; then
+                restore_database
+                else
+                    echo "File $DATABASEFILE not found"
+                fi
+    fi
+
